@@ -19,7 +19,7 @@ COPY src src
 RUN ./mvnw package -DskipTests
 
 # Výber základného obrazu pre finálnu fázu
-FROM openjdk:17-jre-slim
+FROM openjdk:17-jre
 
 # Nastavenie pracovného adresára v kontajneri
 WORKDIR /app
