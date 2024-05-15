@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: private-chat
+#  r2dbc:
+#    url: r2dbc:postgresql://localhost:5432/postgres
+#    username: cicina
+#    password: cicina
+#    pool:
+#      enabled: false
+#  r2dbc:
+#    url: r2dbc:postgresql://ec2-52-31-2-97.eu-west-1.compute.amazonaws.com:5432/d21uftgr4o83lq
+#    username: ezhwggbnywcuhf
+#    password: 535d74f7cee1c5e42f5b2c53906e0865b75b2ca123f0a292709106832cff2d70
+#    pool:
+#      enabled: false
+#    properties:
+#      sslMode: REQUIRE
+  r2dbc:
+    url: r2dbc:postgres://wncjbsag:pNjQsshD2QMPZKc8JSb55yCzLCrJRp6U@rogue.db.elephantsql.com/wncjbsag
+    username: wncjbsag
+    password: pNjQsshD2QMPZKc8JSb55yCzLCrJRp6U
+    pool:
+      initial-size: 1
+      max-size: 3
+      max-idle-time: 30m
+#      enabled: false
+server:
+  port: 8086
