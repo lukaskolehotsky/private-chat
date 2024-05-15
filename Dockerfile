@@ -1,5 +1,5 @@
-# Výber základného obrazu
-FROM openjdk:11-jdk as build
+# Výber základného obrazu pre build
+FROM openjdk:17-jdk as build
 
 # Nastavenie pracovného adresára v kontajneri
 WORKDIR /app
@@ -19,7 +19,7 @@ COPY src src
 RUN ./mvnw package -DskipTests
 
 # Výber základného obrazu pre finálnu fázu
-FROM openjdk:11-jre-slim
+FROM openjdk:17-jre-slim
 
 # Nastavenie pracovného adresára v kontajneri
 WORKDIR /app
