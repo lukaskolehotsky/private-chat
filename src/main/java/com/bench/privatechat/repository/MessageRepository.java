@@ -12,6 +12,8 @@ import java.util.UUID;
 public interface MessageRepository extends ReactiveCrudRepository<Message, UUID> {
 
     Flux<Message> getAllBySenderAndReceiver(UUID sender, UUID receiver);
+    Flux<Message> getAllBySender(UUID sender);
+    Flux<Message> getAllByReceiver(UUID receiver);
 
     Mono<Boolean> existsByReceiverAndDisplayedIsFalse(UUID receiver);
     Mono<Boolean> existsBySenderAndReceiverAndDisplayedIsFalse(UUID sender, UUID receiver);

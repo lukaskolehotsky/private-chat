@@ -30,7 +30,6 @@ public class MessageService {
     }
 
     public Mono<List<MessageResponse>> getMessages(UUID sender, UUID receiver) {
-
         return Flux.concat(
                         messageRepository.getAllBySenderAndReceiver(sender, receiver),
                         messageRepository.getAllBySenderAndReceiver(receiver, sender)

@@ -1,12 +1,11 @@
 package com.bench.privatechat.service;
 
-import com.bench.privatechat.model.db.User;
 import com.bench.privatechat.model.mapper.UserMapper;
 import com.bench.privatechat.model.request.UserRequest;
 import com.bench.privatechat.model.response.UserResponse;
+import com.bench.privatechat.repository.MessageRepository;
 import com.bench.privatechat.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.val;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -19,6 +18,7 @@ import java.util.UUID;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final MessageRepository messageRepository;
     private final UserMapper userMapper;
 
     public Mono<UserResponse> create(UserRequest request) {
@@ -30,11 +30,19 @@ public class UserService {
     }
 
     public Mono<Void> deleteAll() {
-        return userRepository.deleteAll();
+        return messageRepository.deleteAll()
+                .then(userRepository.deleteAll());
     }
 
     public Mono<Void> deleteById(UUID id) {
-        return userRepository.deleteById(id);
+        return Mono.defer(() ->
+                Flux.concat(
+                                messageRepository.getAllBySender(id),
+                                messageRepository.getAllByReceiver(id)
+                        )
+                        .flatMap(messageRepository::delete)
+                        .then(userRepository.deleteById(id))
+        );
     }
 
     public Mono<List<UserResponse>> findAll() {
