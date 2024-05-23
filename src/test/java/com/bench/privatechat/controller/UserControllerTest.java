@@ -41,8 +41,8 @@ class UserControllerTest {
     void test_postgre_getAll() {
         when(privateChatAppProperties.getDatabase()).thenReturn(POSTGRE);
         List<UserResponse> users = Arrays.asList(
-                TestUtil.buildUserResponse("user1"),
-                TestUtil.buildUserResponse("user2")
+                TestUtil.buildUserResponse(UUID.randomUUID(), "user1"),
+                TestUtil.buildUserResponse(UUID.randomUUID(), "user2")
         );
         when(userServicePostgreSQL.findAll()).thenReturn(Mono.just(users));
 
@@ -60,8 +60,8 @@ class UserControllerTest {
     void test_mongo_getAll() {
         when(privateChatAppProperties.getDatabase()).thenReturn(MONGO);
         List<UserResponse> users = Arrays.asList(
-                TestUtil.buildUserResponse("user1"),
-                TestUtil.buildUserResponse("user2")
+                TestUtil.buildUserResponse(UUID.randomUUID(), "user1"),
+                TestUtil.buildUserResponse(UUID.randomUUID(), "user2")
         );
         when(userServiceMongo.findAll()).thenReturn(Mono.just(users));
 
@@ -79,7 +79,7 @@ class UserControllerTest {
     void test_postgre_createUser() {
         when(privateChatAppProperties.getDatabase()).thenReturn(POSTGRE);
         UserRequest request = TestUtil.buildUserRequest("test");
-        UserResponse response = TestUtil.buildUserResponse("test");
+        UserResponse response = TestUtil.buildUserResponse(UUID.randomUUID(), "test");
         when(userServicePostgreSQL.create(request)).thenReturn(Mono.just(response));
 
         webClient.post()
@@ -99,7 +99,7 @@ class UserControllerTest {
     void test_mongo_createUser() {
         when(privateChatAppProperties.getDatabase()).thenReturn(MONGO);
         UserRequest request = TestUtil.buildUserRequest("test");
-        UserResponse response = TestUtil.buildUserResponse("test");
+        UserResponse response = TestUtil.buildUserResponse(UUID.randomUUID(), "test");
         when(userServiceMongo.create(request)).thenReturn(Mono.just(response));
 
         webClient.post()
@@ -171,5 +171,39 @@ class UserControllerTest {
 
         verify(userServiceMongo, times(1)).deleteById(id);
         verify(userServicePostgreSQL, times(0)).deleteById(any(UUID.class));
+    }
+
+    @Test
+    void test_postgre_getById() {
+        when(privateChatAppProperties.getDatabase()).thenReturn(POSTGRE);
+        UUID id = UUID.randomUUID();
+        UserResponse userResponse = TestUtil.buildUserResponse(id, "test_user");
+        when(userServicePostgreSQL.findById(id)).thenReturn(Mono.just(userResponse));
+
+        webClient.get().uri("/api/users/{id}", id)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(UserResponse.class)
+                .isEqualTo(userResponse);
+
+        verify(userServicePostgreSQL, times(1)).findById(id);
+        verify(userServiceMongo, times(0)).findById(any(UUID.class));
+    }
+
+    @Test
+    void test_mongo_getById() {
+        when(privateChatAppProperties.getDatabase()).thenReturn(MONGO);
+        UUID id = UUID.randomUUID();
+        UserResponse userResponse = TestUtil.buildUserResponse(id, "test_user");
+        when(userServiceMongo.findById(id)).thenReturn(Mono.just(userResponse));
+
+        webClient.get().uri("/api/users/{id}", id)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(UserResponse.class)
+                .isEqualTo(userResponse);
+
+        verify(userServiceMongo, times(1)).findById(id);
+        verify(userServicePostgreSQL, times(0)).findById(any(UUID.class));
     }
 }

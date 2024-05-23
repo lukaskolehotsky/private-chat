@@ -51,4 +51,9 @@ public class UserServicePostgreSQL {
                 .collectList();
     }
 
+    public Mono<UserResponse> findById(UUID id) {
+        return userRepositoryPostgreSQL.findById(id)
+                .map(userMapperPostgreSQL::from);
+    }
+
 }

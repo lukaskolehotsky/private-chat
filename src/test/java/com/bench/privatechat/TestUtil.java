@@ -10,9 +10,9 @@ import java.util.UUID;
 
 public class TestUtil {
 
-    public static UserResponse buildUserResponse(String username) {
+    public static UserResponse buildUserResponse(UUID id, String username) {
         return UserResponse.builder()
-                .id(UUID.randomUUID())
+                .id(id)
                 .username(username)
                 .email(username + "@test.com")
                 .createdAt(LocalDateTime.now())

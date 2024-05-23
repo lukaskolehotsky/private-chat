@@ -101,4 +101,20 @@ public class UserController {
         return userServicePostgreSQL.findAll()
                 .doOnNext(users -> log.info("{} - Found users: {}", POSTGRE, users));
     }
+
+    @GetMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public Mono<UserResponse> getById(
+            @PathVariable UUID id
+    ) {
+        log.info("Find user by id");
+
+        if (MONGO.equals(privateChatAppProperties.getDatabase())) {
+            return userServiceMongo.findById(id)
+                    .doOnNext(user -> log.info("{} - Found user {} by id: {}", MONGO, user, id));
+        }
+
+        return userServicePostgreSQL.findById(id)
+                .doOnNext(user -> log.info("{} - Found user {} by id: {}", POSTGRE, user, id));
+    }
 }

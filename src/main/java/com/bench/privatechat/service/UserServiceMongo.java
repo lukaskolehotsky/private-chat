@@ -53,4 +53,9 @@ public class UserServiceMongo {
                 .collectList();
     }
 
+    public Mono<UserResponse> findById(UUID id) {
+        return userRepositoryMongo.findById(id)
+                .map(userMapperMongo::from);
+    }
+
 }
