@@ -9,7 +9,7 @@ import reactor.core.publisher.Mono;
 import java.util.UUID;
 
 @Repository
-@ConditionalOnProperty(name = "app.database", havingValue = "mongo")
+@ConditionalOnProperty(name = "application.properties.database", havingValue = "mongo")
 public interface UserRepositoryMongo extends ReactiveMongoRepository<User, UUID> {
 
     Mono<User> findByUsername(String username);

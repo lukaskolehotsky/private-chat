@@ -10,7 +10,7 @@ import reactor.core.publisher.Mono;
 import java.util.UUID;
 
 @Repository
-@ConditionalOnProperty(name = "app.database", havingValue = "mongo")
+@ConditionalOnProperty(name = "application.properties.database", havingValue = "mongo")
 public interface MessageRepositoryMongo extends ReactiveMongoRepository<Message, UUID> {
 
     Flux<Message> getAllBySenderAndReceiver(UUID sender, UUID receiver);

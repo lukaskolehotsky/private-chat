@@ -13,7 +13,7 @@ import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "app.database", havingValue = "mongo")
+@ConditionalOnProperty(name = "application.properties.database", havingValue = "mongo")
 public class MessageMapperMongo {
 
     private final Clock clock;

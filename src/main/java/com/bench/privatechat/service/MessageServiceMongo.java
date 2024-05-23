@@ -19,7 +19,7 @@ import java.util.UUID;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "app.database", havingValue = "mongo")
+@ConditionalOnProperty(name = "application.properties.database", havingValue = "mongo")
 public class MessageServiceMongo {
 
     public final MessageRepositoryMongo messageRepository;

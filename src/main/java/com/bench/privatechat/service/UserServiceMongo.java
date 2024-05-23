@@ -16,7 +16,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "app.database", havingValue = "mongo")
+@ConditionalOnProperty(name = "application.properties.database", havingValue = "mongo")
 public class UserServiceMongo {
 
     private final UserRepositoryMongo userRepositoryMongo;
