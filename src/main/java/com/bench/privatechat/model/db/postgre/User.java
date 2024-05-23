@@ -1,4 +1,4 @@
-package com.bench.privatechat.model.db;
+package com.bench.privatechat.model.db.postgre;
 
 import lombok.Builder;
 import lombok.Data;
@@ -9,21 +9,16 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
-@Table
+@Table(name = "user_tbl")
 @Builder
-public class Message {
+public class User {
 
     @Id
     private UUID id;
 
-    private UUID sender;
+    private String username;
 
-    private UUID receiver;
-
-    private String message;
+    private String email;
 
     private LocalDateTime createdAt;
-
-    private Boolean displayed;
-
 }

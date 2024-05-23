@@ -23,6 +23,12 @@ spring:
       initial-size: 1
       max-size: 3
       max-idle-time: 30m
-#      enabled: false
+  data:
+    mongodb:
+      uri: mongodb+srv://lukaskolehotsky:lukaskolehotsky@privatechat.7orpbmi.mongodb.net/?retryWrites=true&w=majority&appName=privatechat
+      database: privatechat
 server:
   port: 8086
+
+app:
+  database: mongo

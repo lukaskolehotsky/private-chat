@@ -1,8 +1,13 @@
 package com.bench.privatechat.controller;
 
+import static com.bench.privatechat.constants.PrivateChatAppConstant.MONGO;
+import static com.bench.privatechat.constants.PrivateChatAppConstant.POSTGRE;
+
+import com.bench.privatechat.config.PrivateChatAppProperties;
 import com.bench.privatechat.model.request.MessageRequest;
 import com.bench.privatechat.model.response.MessageResponse;
-import com.bench.privatechat.service.MessageService;
+import com.bench.privatechat.service.MessageServiceMongo;
+import com.bench.privatechat.service.MessageServicePostgreSQL;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -21,7 +26,9 @@ import java.util.UUID;
 @RequestMapping("/api/messages")
 public class MessageController {
 
-    public final MessageService messageService;
+    public final PrivateChatAppProperties privateChatAppProperties;
+    public final MessageServicePostgreSQL messageServicePostgreSQL;
+    public final MessageServiceMongo messageServiceMongo;
 
     @PostMapping
     public Mono<ResponseEntity<MessageResponse>> createMessage(
@@ -30,17 +37,24 @@ public class MessageController {
     ) {
         log.info("Create message : {}", request);
 
-        return messageService.createMessage(request)
-                .doOnNext(message -> log.info("Created message: {}", message))
-                .map(messageResponse -> {
-                    URI locationOfMessage = ucb
-                            .path("/api/messages/{id}")
-                            .buildAndExpand(messageResponse.getId())
-                            .toUri();
-                    return ResponseEntity
-                            .created(locationOfMessage)
-                            .body(messageResponse);
-                });
+        Mono<MessageResponse> messageMono;
+        if (MONGO.equals(privateChatAppProperties.getDatabase())) {
+            messageMono = messageServiceMongo.createMessage(request)
+                    .doOnNext(message -> log.info("{} - Created message: {}", MONGO, message));
+        } else {
+            messageMono = messageServicePostgreSQL.createMessage(request)
+                    .doOnNext(message -> log.info("{} - Created message: {}", POSTGRE, message));
+        }
+
+        return messageMono.map(messageResponse -> {
+            URI locationOfMessage = ucb
+                    .path("/api/messages/{id}")
+                    .buildAndExpand(messageResponse.getId())
+                    .toUri();
+            return ResponseEntity
+                    .created(locationOfMessage)
+                    .body(messageResponse);
+        });
     }
 
     @GetMapping("/{sender}/{receiver}")
@@ -50,9 +64,16 @@ public class MessageController {
     ) {
         log.info("Get messages by sender: [{}], receiver: [{}]", sender, receiver);
 
-        return messageService.getMessages(sender, receiver)
-                .doOnNext(messages -> log.info("Got messages: {}", messages))
-                .map(ResponseEntity::ok);
+        Mono<List<MessageResponse>> messagesMono;
+        if (MONGO.equals(privateChatAppProperties.getDatabase())) {
+            messagesMono = messageServiceMongo.getMessages(sender, receiver)
+                    .doOnNext(messages -> log.info("{} - Got messages: {}", MONGO, messages));
+        } else {
+            messagesMono = messageServicePostgreSQL.getMessages(sender, receiver)
+                    .doOnNext(messages -> log.info("{} - Got messages: {}", POSTGRE, messages));
+        }
+
+        return messagesMono.map(ResponseEntity::ok);
     }
 
     @DeleteMapping
@@ -60,31 +81,50 @@ public class MessageController {
     public Mono<Void> deleteAll() {
         log.info("Delete all messages");
 
-        return messageService.deleteAll()
-                .doOnSuccess(aVoid -> log.info("Deleted all messages"));
+        if (MONGO.equals(privateChatAppProperties.getDatabase())) {
+            return messageServiceMongo.deleteAll()
+                    .doOnSuccess(aVoid -> log.info("{} - Deleted all messages", MONGO));
+        }
+
+        return messageServicePostgreSQL.deleteAll()
+                .doOnSuccess(aVoid -> log.info("{} - Deleted all messages", POSTGRE));
     }
 
-    @GetMapping("/exists-by-receiver-not-displayed/{receiver}")
-    public Mono<ResponseEntity<Boolean>> existsByReceiverAndDisplayedIsFalse(
-            @PathVariable UUID receiver
-    ) {
-        log.info("Exists messages by receiver: [{}]", receiver);
-
-        return messageService.existsByReceiverAndDisplayedIsFalse(receiver)
-                .doOnNext(exists -> log.info("Exists messages by receiver: {}", exists))
-                .map(a -> ResponseEntity.ok(a));
-    }
+//    @GetMapping("/exists-by-receiver-not-displayed/{receiver}")
+//    public Mono<ResponseEntity<Boolean>> existsByReceiverAndDisplayedIsFalse(
+//            @PathVariable UUID receiver
+//    ) {
+//        log.info("Exists messages by receiver: [{}]", receiver);
+//
+//        Mono<Boolean> existsMono;
+//        if (MONGO.equals(privateChatAppProperties.getDatabase())) {
+//            existsMono = messageServiceMongo.existsByReceiverAndDisplayedIsFalse(receiver)
+//                    .doOnNext(exists -> log.info("{} - Exists messages by receiver: {}", MONGO, exists));
+//        } else {
+//            existsMono = messageServicePostgreSQL.existsByReceiverAndDisplayedIsFalse(receiver)
+//                    .doOnNext(exists -> log.info("{} - Exists messages by receiver: {}", POSTGRE, exists));
+//        }
+//
+//        return existsMono.map(ResponseEntity::ok);
+//    }
 
     @GetMapping("/exists-not-displayed-by-sender-and-receiver/{sender}/{receiver}")
     public Mono<ResponseEntity<Boolean>> existsNotDisplayedBySenderAndReceiver(
             @PathVariable UUID sender,
             @PathVariable UUID receiver
     ) {
-        log.info("Exists not dislpayed messages by sender: [{}] and receiver: [{}]", sender, receiver);
+        log.info("Exists not displayed messages by sender: [{}] and receiver: [{}]", sender, receiver);
 
-        return messageService.existsNotDisplayedBySenderAndReceiver(sender, receiver)
-                .doOnNext(exists -> log.info("Exists not displayed messages by sender and receiver, - {}", exists))
-                .map(a -> ResponseEntity.ok(a));
+        Mono<Boolean> existsMono;
+        if (MONGO.equals(privateChatAppProperties.getDatabase())) {
+            existsMono = messageServiceMongo.existsNotDisplayedBySenderAndReceiver(sender, receiver)
+                    .doOnNext(exists -> log.info("{} - Exists not displayed messages by sender and receiver, - {}", MONGO, exists));
+        } else {
+            existsMono = messageServicePostgreSQL.existsNotDisplayedBySenderAndReceiver(sender, receiver)
+                    .doOnNext(exists -> log.info("{} - Exists not displayed messages by sender and receiver, - {}", POSTGRE, exists));
+        }
+
+        return existsMono.map(ResponseEntity::ok);
     }
 
     @GetMapping("/read/{id}")
@@ -93,7 +133,11 @@ public class MessageController {
     ) {
         log.info("Display message by id: [{}]", id);
 
-        return messageService.readMessage(id);
+        if (MONGO.equals(privateChatAppProperties.getDatabase())) {
+            return messageServiceMongo.readMessage(id);
+        }
+
+        return messageServicePostgreSQL.readMessage(id);
     }
 
 }

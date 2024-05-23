@@ -28,7 +28,7 @@
 			<scope>provided</scope>
 		</dependency>
 
-		<!--DB-->
+		<!--DB Postgre sql-->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-r2dbc</artifactId>
@@ -37,6 +37,12 @@
 			<groupId>io.r2dbc</groupId>
 			<artifactId>r2dbc-postgresql</artifactId>
 			<version>${r2dbc-postgresql.version}</version>
+		</dependency>
+
+		<!-- DB Mongo -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-mongodb-reactive</artifactId>
 		</dependency>
 
 		<dependency>

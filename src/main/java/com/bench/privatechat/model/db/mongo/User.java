@@ -1,16 +1,16 @@
-package com.bench.privatechat.model.db;
+package com.bench.privatechat.model.db.mongo;
 
 import lombok.Builder;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.relational.core.mapping.Table;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
-@Table(name = "user_tbl")
 @Builder
+@Document("user_tbl")
 public class User {
 
     @Id
@@ -21,4 +21,5 @@ public class User {
     private String email;
 
     private LocalDateTime createdAt;
+
 }

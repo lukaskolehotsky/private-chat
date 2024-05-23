@@ -1,8 +1,13 @@
 package com.bench.privatechat.controller;
 
+import static com.bench.privatechat.constants.PrivateChatAppConstant.MONGO;
+import static com.bench.privatechat.constants.PrivateChatAppConstant.POSTGRE;
+
+import com.bench.privatechat.config.PrivateChatAppProperties;
 import com.bench.privatechat.model.request.UserRequest;
 import com.bench.privatechat.model.response.UserResponse;
-import com.bench.privatechat.service.UserService;
+import com.bench.privatechat.service.UserServiceMongo;
+import com.bench.privatechat.service.UserServicePostgreSQL;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -21,28 +26,36 @@ import java.util.UUID;
 @RequestMapping("/api/users")
 public class UserController {
 
-    public final UserService userService;
+    public final PrivateChatAppProperties privateChatAppProperties;
+    public final UserServicePostgreSQL userServicePostgreSQL;
+    public final UserServiceMongo userServiceMongo;
 
-    @PostMapping
+    @PostMapping()
+    @ResponseStatus(HttpStatus.CREATED)
     public Mono<ResponseEntity<UserResponse>> create(
             @RequestBody UserRequest request,
             UriComponentsBuilder ucb
     ) {
         log.info("Create user : {}", request);
 
-        return userService.create(request)
-                .doOnNext(user -> log.info("Created user: {}", user))
-                .map(userResponse ->
-                        {
-                            URI locationOfUser = ucb
-                                    .path("/api/users/{id}")
-                                    .buildAndExpand(userResponse.getId())
-                                    .toUri();
-                            return ResponseEntity
-                                    .created(locationOfUser)
-                                    .body(userResponse);
-                        }
-                );
+        Mono<UserResponse> userMono;
+        if (MONGO.equals(privateChatAppProperties.getDatabase())) {
+            userMono = userServiceMongo.create(request)
+                    .doOnNext(user -> log.info("{} - Created user: {}", MONGO, user));
+        } else {
+            userMono = userServicePostgreSQL.create(request)
+                    .doOnNext(user -> log.info("{} - Created user: {}", POSTGRE, user));
+        }
+
+        return userMono.map(userResponse -> {
+            URI locationOfUser = ucb
+                    .path("/api/users/{id}")
+                    .buildAndExpand(userResponse.getId())
+                    .toUri();
+            return ResponseEntity
+                    .created(locationOfUser)
+                    .body(userResponse);
+        });
     }
 
     @DeleteMapping
@@ -50,8 +63,13 @@ public class UserController {
     public Mono<Void> deleteAll() {
         log.info("Delete all users");
 
-        return userService.deleteAll()
-                .doOnSuccess(aVoid -> log.info("Deleted all users"));
+        if (MONGO.equals(privateChatAppProperties.getDatabase())) {
+            return userServiceMongo.deleteAll()
+                    .doOnSuccess(aVoid -> log.info("{} - Deleted all users", MONGO));
+        }
+
+        return userServicePostgreSQL.deleteAll()
+                .doOnSuccess(aVoid -> log.info("{} - Deleted all users", POSTGRE));
     }
 
     @DeleteMapping("/{id}")
@@ -61,8 +79,13 @@ public class UserController {
     ) {
         log.info("Delete user by id: {}", id);
 
-        return userService.deleteById(id)
-                .doOnSuccess(aVoid -> log.info("Deleted user by id: {}", id));
+        if (MONGO.equals(privateChatAppProperties.getDatabase())) {
+            return userServiceMongo.deleteById(id)
+                    .doOnSuccess(aVoid -> log.info("{} - Deleted user by id: {}", MONGO, id));
+        }
+
+        return userServicePostgreSQL.deleteById(id)
+                .doOnSuccess(aVoid -> log.info("{} - Deleted user by id: {}", POSTGRE, id));
     }
 
     @GetMapping("/all")
@@ -70,8 +93,12 @@ public class UserController {
     public Mono<List<UserResponse>> getAll() {
         log.info("Find all users");
 
-        return userService.findAll()
-                .doOnNext(users -> log.info("Found users: {}", users));
-    }
+        if (MONGO.equals(privateChatAppProperties.getDatabase())) {
+            return userServiceMongo.findAll()
+                    .doOnNext(users -> log.info("{} - Found users: {}", MONGO, users));
+        }
 
+        return userServicePostgreSQL.findAll()
+                .doOnNext(users -> log.info("{} - Found users: {}", POSTGRE, users));
+    }
 }

@@ -1,13 +1,12 @@
 package com.bench.privatechat.service;
 
-import com.bench.privatechat.model.db.Message;
-import com.bench.privatechat.model.mapper.MessageMapper;
+import com.bench.privatechat.model.db.postgre.Message;
+import com.bench.privatechat.mapper.MessageMapperPostgreSQL;
 import com.bench.privatechat.model.request.MessageRequest;
 import com.bench.privatechat.model.response.MessageResponse;
-import com.bench.privatechat.repository.MessageRepository;
+import com.bench.privatechat.repository.MessageRepositoryPostgreSQL;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -19,10 +18,10 @@ import java.util.UUID;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class MessageService {
+public class MessageServicePostgreSQL {
 
-    public final MessageRepository messageRepository;
-    public final MessageMapper messageMapper;
+    public final MessageRepositoryPostgreSQL messageRepository;
+    public final MessageMapperPostgreSQL messageMapper;
 
     public Mono<MessageResponse> createMessage(MessageRequest request) {
         return messageRepository.save(messageMapper.from(request))
@@ -43,9 +42,9 @@ public class MessageService {
         return messageRepository.deleteAll();
     }
 
-    public Mono<Boolean> existsByReceiverAndDisplayedIsFalse(UUID receiver) {
-        return messageRepository.existsByReceiverAndDisplayedIsFalse(receiver);
-    }
+//    public Mono<Boolean> existsByReceiverAndDisplayedIsFalse(UUID receiver) {
+//        return messageRepository.existsByReceiverAndDisplayedIsFalse(receiver);
+//    }
 
     public Mono<Boolean> existsNotDisplayedBySenderAndReceiver(UUID sender, UUID receiver) {
         return messageRepository.existsBySenderAndReceiverAndDisplayedIsFalse(sender, receiver);
